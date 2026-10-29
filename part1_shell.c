@@ -17,73 +17,45 @@
 #define MAX_LINE 1024   /* size of the input buffer           */
 #define MAX_ARGS 64     /* size of argv, including final NULL */
 
-/*
- * Split line into words in place. Every space, tab, or newline is overwritten
- * with '\0', and argv[i] points at the start of each word, so no copying or
- * malloc is needed. The list ends with a NULL pointer, which is what execvp
- * expects.
- */
 void parse(char *line, char **argv)
 {
-    int argc = 0;
-
-    while (*line != '\0') {                 /* if not the end of line ....... */
+    while (*line != '\0') {       /* if not the end of line ....... */ 
         while (*line == ' ' || *line == '\t' || *line == '\n')
-            *line++ = '\0';                 /* replace white spaces with 0    */
-        if (*line != '\0' && argc < MAX_ARGS - 1)
-            argv[argc++] = line;            /* save the argument position     */
-        while (*line != '\0' && *line != ' ' &&
-               *line != '\t' && *line != '\n')
-            line++;                         /* skip the argument until ...    */
+            *line++ = '\0';       /* replace white spaces with 0    */
+        if (*line != '\0')
+            *argv++ = line;       /* save the argument position     */
+        while (*line != '\0' && *line != ' ' && 
+               *line != '\t' && *line != '\n') 
+            line++;               /* skip the argument until ...    */
     }
-    argv[argc] = NULL;                      /* mark the end of argument list  */
+    *argv = NULL;                 /* mark the end of argument list  */
 }
 
-/*
- * Run one command and wait for it to finish.
- */
 void execute(char **argv)
 {
     pid_t pid;
     int status;
-
-    /*
-     * Flush stdout before forking. If output is going to a pipe or file (as
-     * when a grading script runs the shell), stdio holds text like the
-     * "Shell -> " prompt in a buffer instead of writing it right away.
-     * Unflushed, the shell's text comes out after the commands' output, and
-     * because fork() copies the buffer, a child whose execvp fails would
-     * print it a second time when it calls exit().
-     */
     fflush(stdout);
 
     pid = fork();
-    if (pid < 0) {                          /* fork failed: no child exists */
+    if (pid < 0) { //failed fork
         perror("fork");
         return;
     }
 
     if (pid == 0) {
-        /*
-         * Child. execvp searches PATH for argv[0] and replaces this process
-         * with that program, passing argv as its arguments. If it succeeds
-         * it never returns.
-         */
+        //child
         execvp(argv[0], argv);
 
-        /*
-         * Reaching this line means execvp failed. The child must exit here;
-         * otherwise it would return into main() and a second copy of the
-         * shell would keep reading commands.
-         */
+        //failed exec
         if (errno == ENOENT)
             fprintf(stderr, "%s: command not found\n", argv[0]);
         else
             perror(argv[0]);
-        exit(127);                          /* same status bash uses */
+        exit(127);
     }
 
-    /* Parent: block until this child exits, so output never overlaps the next prompt. */
+    //wait for child exit
     if (waitpid(pid, &status, 0) < 0)
         perror("waitpid");
 }
