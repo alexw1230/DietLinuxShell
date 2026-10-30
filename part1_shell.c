@@ -1,21 +1,10 @@
-/*
- * ESE 333 Project 2 - Part 1: A Basic Shell
- *
- * Reads one line at a time, splits it into words, and runs it as a single
- * command: fork() a child, the child replaces itself with the program via
- * execvp(), and the parent waits for it with waitpid() before prompting again.
- * No pipes, redirection, or background jobs yet (those come in Part 3).
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <sys/types.h>
-#include <sys/wait.h>   /* waitpid() */
-#include <unistd.h>     /* fork(), execvp() */
-
-#define MAX_LINE 1024   /* size of the input buffer           */
-#define MAX_ARGS 64     /* size of argv, including final NULL */
+#include <sys/wait.h>
+#include <unistd.h>
+#include <errno.h>
 
 void parse(char *line, char **argv)
 {
@@ -61,29 +50,20 @@ void execute(char **argv)
 
 int main(void)
 {
-    char line[MAX_LINE];                    /* the input line            */
-    char *argv[MAX_ARGS];                   /* the command line argument */
+    char line[1024];         /* the input line                 */
+    char *argv[64];          /* the command line argument      */
 
-    fputs("Type 'exit' to quit\n\n", stdout);
-
-    while (1) {                             /* repeat until done ....    */
-        fputs("Shell -> ", stdout);         /*   display a prompt        */
-        fflush(stdout);                     /*   make sure it shows now  */
-
-        /* fgets returns NULL at end of input (Ctrl-D or end of a piped script). */
-        if (fgets(line, sizeof(line), stdin) == NULL) {
-            fputs("\n", stdout);
-            break;
-        }
-
-        parse(line, argv);                  /*   parse the line          */
-
-        if (argv[0] == NULL)                /*   blank line: re-prompt   */
+    while (1)
+    {                                     /* repeat until done ....         */
+        fputs("Shell -> ", stdout);       /*   display a prompt             */
+        if (fgets(line, 1024, stdin) == NULL) /* read in the command line   */
+            exit(0);                      /*   end of input: quit           */
+        parse(line, argv);                /*   parse the line               */
+        if (argv[0] == NULL)              /*   blank line: prompt again     */
             continue;
-        if (strcmp(argv[0], "exit") == 0)   /*   is it an "exit"?        */
-            break;
-
-        execute(argv);                      /* otherwise, execute it     */
+        if (strcmp(argv[0], "exit") == 0) /* is it an "exit"?     */
+            exit(0);                      /*   exit if it is                */
+        execute(argv);                    /* otherwise, execute the command */
     }
     return 0;
 }
