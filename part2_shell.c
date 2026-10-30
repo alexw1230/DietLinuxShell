@@ -193,16 +193,18 @@ void execute(char **argv)
         //execute command
         execvp(argv[0], argv);
         //failed exec
-        if (errno == ENOENT)
+        if (errno == ENOENT) {
             fprintf(stderr, "%s: command not found\n", argv[0]);
-        else
+        } else {
             perror(argv[0]);
+        }
         exit(127);
     }
 
     //wait for child exit
-    if (waitpid(pid, &status, 0) < 0)
+    if (waitpid(pid, &status, 0) < 0) {
         perror("waitpid");
+    }
 }
 
 int main(void)
@@ -216,11 +218,13 @@ int main(void)
     while (1)
     {                                     /* repeat until done ....         */
         fputs("Shell -> ", stdout);       /*   display a prompt             */
-        if (fgets(line, 1024, stdin) == NULL) /* read in the command line   */
+        if (fgets(line, 1024, stdin) == NULL) { /* read in the command line */
             exit(0);                      /*   end of input: quit           */
+        }
         list = parse(line);               /*   parse the line               */
-        if (list == NULL)                 /*   blank line: prompt again     */
+        if (list == NULL) {               /*   blank line: prompt again     */
             continue;
+        }
         if (strcmp(list->data, "exit") == 0) { /* is it an "exit"?     */
             free_list(list);
             exit(0);                      /*   exit if it is                */

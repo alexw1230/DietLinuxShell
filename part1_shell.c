@@ -36,16 +36,18 @@ void execute(char **argv)
         //execute command
         execvp(argv[0], argv);
         //failed exec
-        if (errno == ENOENT)
+        if (errno == ENOENT) {
             fprintf(stderr, "%s: command not found\n", argv[0]);
-        else
+        } else {
             perror(argv[0]);
+        }
         exit(127);
     }
 
     //wait for child exit
-    if (waitpid(pid, &status, 0) < 0)
+    if (waitpid(pid, &status, 0) < 0) {
         perror("waitpid");
+    }
 }
 
 int main(void)
@@ -53,14 +55,18 @@ int main(void)
     char line[1024];         /* the input line                 */
     char *argv[64];          /* the command line argument      */
 
+    fputs("Type 'exit' to quit\n\n", stdout);
+
     while (1)
     {                                     /* repeat until done ....         */
         fputs("Shell -> ", stdout);       /*   display a prompt             */
-        if (fgets(line, 1024, stdin) == NULL) /* read in the command line   */
+        if (fgets(line, 1024, stdin) == NULL) { /* read in the command line */
             exit(0);                      /*   end of input: quit           */
+        }
         parse(line, argv);                /*   parse the line               */
-        if (argv[0] == NULL)              /*   blank line: prompt again     */
+        if (argv[0] == NULL) {            /*   blank line: prompt again     */
             continue;
+        }
         if (strcmp(argv[0], "exit") == 0) /* is it an "exit"?     */
             exit(0);                      /*   exit if it is                */
         execute(argv);                    /* otherwise, execute the command */
