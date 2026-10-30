@@ -416,7 +416,7 @@ int main(void)
             exit(0);                      /*   end of input: quit           */
         }
 
-        //clean up background jobs that finished, so they don't stay zombies
+        //clean up background jobs that finished
         while (waitpid(-1, NULL, WNOHANG) > 0) {
         }
         list = parse(line);               /*   parse the line               */
