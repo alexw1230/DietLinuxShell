@@ -42,11 +42,10 @@ void execute(char **argv)
         perror("fork");
         return;
     }
-
     if (pid == 0) {
         //child
+        //execute command
         execvp(argv[0], argv);
-
         //failed exec
         if (errno == ENOENT)
             fprintf(stderr, "%s: command not found\n", argv[0]);
