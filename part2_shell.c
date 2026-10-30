@@ -8,7 +8,7 @@
 
 //token types & names
 enum {CMD, ARG, FLAG1, FLAG2, SYMBOL};
-char *type_names[] = { "CMD", "ARG", "FLAG1", "FLAG2", "SYMBOL" };
+char *type_names[] = {"CMD", "ARG", "FLAG1", "FLAG2", "SYMBOL"};
 
 //node struct
 struct node {
@@ -87,7 +87,7 @@ struct node *parse(char *line)
 
             //file, command, flag, or reg argument
             if (after_redirect) {
-                n->type = ARG;    //file after redirect
+                n->type = ARG;
             } else if (expect_cmd) {
                 n->type = CMD;
                 expect_cmd = 0;

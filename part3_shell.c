@@ -9,7 +9,7 @@
 
 //token types & names
 enum {CMD, ARG, FLAG1, FLAG2, SYMBOL};
-char *type_names[] = { "CMD", "ARG", "FLAG1", "FLAG2", "SYMBOL" };
+char *type_names[] = {"CMD", "ARG", "FLAG1", "FLAG2", "SYMBOL"};
 
 //node struct
 struct node {
@@ -88,7 +88,7 @@ struct node *parse(char *line)
 
             //file, command, flag, or reg argument
             if (after_redirect) {
-                n->type = ARG;    //file after redirect
+                n->type = ARG;
             } else if (expect_cmd) {
                 n->type = CMD;
                 expect_cmd = 0;
@@ -115,7 +115,7 @@ struct node *parse(char *line)
     return head;
 }
 
-//pt 2 printing, not called here
+//not called here
 //print the command list, then each command with what follows it
 void print_commands(struct node *list) {
     struct node *n, *a;
@@ -146,6 +146,7 @@ void print_commands(struct node *list) {
     }
 }
 
+//not called
 //print every token and its type
 void print_list(struct node *list) {
     struct node *n;
@@ -185,10 +186,10 @@ struct command {
     char *out_file;  //file after >, or NULL
 };
 
-//take out quotes like a real shell does, "hello world" -> hello world
+//strip quotes out
 void strip_quotes(char *s) {
     char *out = s;
-    char quote = 0; //quote we're inside of, 0 if none
+    char quote = 0;
 
     for (; *s != '\0'; s++) {
         if (quote == 0 && (*s == '"' || *s == '\'')) {
@@ -202,7 +203,7 @@ void strip_quotes(char *s) {
     *out = '\0';
 }
 
-//print a syntax error for the token where the line went wrong
+//print syntax err
 void syntax_error(struct node *n) {
     fputs("syntax error near unexpected token `", stderr);
     if (n == NULL) {
@@ -213,12 +214,11 @@ void syntax_error(struct node *n) {
     fputs("'\n", stderr);
 }
 
-//turn the tokens up to the next & (or end of line) into commands
-//moves *list past what was used, returns # of commands or -1 on an error
+//turn tokens into cmds
 int build_commands(struct node **list, struct command *cmds, int *background) {
     struct node *n = *list;
-    int count = 0; //commands finished so far
-    int argc = 0;  //args in the current command
+    int count = 0; //finished so far
+    int argc = 0;  //args in the current cmd
 
     *background = 0;
     cmds[0].in_file = NULL;
@@ -226,7 +226,7 @@ int build_commands(struct node **list, struct command *cmds, int *background) {
 
     while (n != NULL) {
 
-        //< and > take the next token as the file name
+        //< and > next token as the file name
         if (n->type == SYMBOL && (n->data[0] == '<' || n->data[0] == '>')) {
             if (n->next == NULL || n->next->type == SYMBOL) {
                 syntax_error(n->next);
@@ -240,7 +240,7 @@ int build_commands(struct node **list, struct command *cmds, int *background) {
             }
             n = n->next->next;
 
-        //| finishes this command and starts the next one
+        //| finishes and start next
         } else if (n->type == SYMBOL && n->data[0] == '|') {
             if (argc == 0) {
                 syntax_error(n);
@@ -297,14 +297,14 @@ void execute(struct command *cmds, int ncmds, int background)
     pid_t pid;
     int status;
     pid_t pids[64]; //children to wait for
-    int fds[2];     //pipe to the next command
-    int prev = -1;  //read end of the pipe from the last command
+    int fds[2];
+    int prev = -1;  //read end of the pipe from the last
     int fd;
     int i, started;
 
-    for (i = 0; i < ncmds; i++) {
+    for (i = 0; i < ncmds; i++) { //for cmds
 
-        //pipe to the next command, unless this is the last one
+        //pipe to the next if not last
         if (i < ncmds - 1) {
             if (pipe(fds) < 0) {
                 perror("pipe");
@@ -385,7 +385,7 @@ void execute(struct command *cmds, int ncmds, int background)
         close(prev);
     }
 
-    //wait for child exit, unless it's running in the background
+    //wait for child exit unless is background process
     started = i;
     if (!background) {
         for (i = 0; i < started; i++) {
@@ -410,15 +410,14 @@ int main(void)
 
     while (1)
     {                                     /* repeat until done ....         */
-
-        //clean up background jobs that finished, so they don't stay zombies
-        while (waitpid(-1, NULL, WNOHANG) > 0) {
-        }
-
         fputs("Shell -> ", stdout);       /*   display a prompt             */
         fflush(stdout); //show the prompt now so error messages come after it
         if (fgets(line, 1024, stdin) == NULL) { /* read in the command line */
             exit(0);                      /*   end of input: quit           */
+        }
+
+        //clean up background jobs that finished, so they don't stay zombies
+        while (waitpid(-1, NULL, WNOHANG) > 0) {
         }
         list = parse(line);               /*   parse the line               */
         if (list == NULL) {               /*   blank line: prompt again     */
@@ -429,7 +428,7 @@ int main(void)
             exit(0);                      /*   exit if it is                */
         }
 
-        //run each pipeline on the line (& splits them), then free it
+        //run each pipeline then free it
         rest = list;
         while (rest != NULL) {
             ncmds = build_commands(&rest, cmds, &background);
